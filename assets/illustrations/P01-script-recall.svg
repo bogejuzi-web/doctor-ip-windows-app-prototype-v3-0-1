@@ -1,0 +1,28 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 675" role="img" aria-labelledby="title desc">
+  <title id="title">小黑把原片脚本送回补充素材页面</title>
+  <desc id="desc">纯白手绘风格的小黑把一张原片脚本纸张推入手机轮廓，旁边有回显批注。</desc>
+  <rect width="1200" height="675" fill="#fff"/>
+  <g fill="none" stroke="#171717" stroke-width="5" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M166 155c12-9 31-11 45-2 8 5 13 14 13 25v302c0 18-14 32-32 32H175c-18 0-32-14-32-32V178c0-10 9-19 23-23z"/>
+    <path d="M193 180v236" opacity=".28"/>
+    <path d="M220 166c11 9 18 22 18 36" opacity=".35"/>
+    <path d="M462 226c38-41 94-63 150-57 68 7 130 55 151 121" stroke="#e47745"/>
+    <path d="M749 279l18 13-3-22" stroke="#e47745"/>
+    <path d="M532 431c50-34 116-39 173-12 42 20 73 52 91 91" stroke="#2f78b7"/>
+    <path d="M795 500l2 22-18-12" stroke="#2f78b7"/>
+    <path d="M428 159h213v284H428z"/>
+    <path d="M455 203h145M455 239h126M455 275h155M455 311h108" opacity=".55"/>
+    <path d="M649 251c42 0 75 23 89 52" stroke="#d84942"/>
+    <path d="M728 294l12 13 7-17" stroke="#d84942"/>
+    <path d="M299 416c11-28 36-42 58-34 20 7 28 28 23 49-7 31-39 52-67 43-21-7-24-35-14-58z" fill="#111"/>
+    <path d="M308 468l-7 58M358 468l12 57M302 526l-20 12M369 525l20 12"/>
+    <path d="M297 439c-26 9-46 24-58 47M376 442c25 7 41 17 56 33"/>
+    <path d="M317 431h3M350 431h3" stroke="#fff" stroke-width="8"/>
+    <path d="M281 549h113" opacity=".4"/>
+  </g>
+  <g font-family="Microsoft YaHei, PingFang SC, sans-serif" font-size="31" font-weight="600">
+    <text x="452" y="500" fill="#d84942">回显</text>
+    <text x="825" y="248" fill="#2f78b7">原片脚本</text>
+    <text x="824" y="295" fill="#d84942">不要丢</text>
+  </g>
+</svg>

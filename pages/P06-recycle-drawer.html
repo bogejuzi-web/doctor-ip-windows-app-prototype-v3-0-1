@@ -1,0 +1,268 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <link rel="icon" href="data:,">
+  <title>脚本回收｜回收抽屉</title>
+  <style>
+    *{box-sizing:border-box}
+    body{margin:0;min-width:1440px;color:#26384c;background:#fff;font:14px/1.45 "Microsoft YaHei",Arial,sans-serif}
+    button,input,select{font:inherit}
+    button{cursor:pointer}
+    .app{display:grid;grid-template-columns:232px 1fr;min-height:100vh}
+    .side{color:#d6e2ee;background:#29435e}
+    .logo,.nav{display:flex;align-items:center;height:46px;padding:0 20px;gap:17px}
+    .logo{height:46px;font-size:16px}
+    .nav{height:62px;color:#d6e2ee}
+    .nav.active{background:#36516d;color:#fff}
+    .nav i{font-style:normal;font-size:19px}
+    .nav b{margin-left:auto;color:#9cadbd;font-weight:400}
+    .child{display:block;padding:18px 0 0 44px;color:#d3e0ed}
+    .child.active{color:#54b4ff;background:#1f354a;padding-bottom:18px}
+    .gap{height:10px;background:#20364b}
+    .main{min-width:0}
+    .top{height:56px;display:flex;align-items:center;justify-content:space-between;padding:0 22px;border-bottom:1px solid #eef1f5}
+    .crumb{display:flex;gap:13px;align-items:center;color:#132033}
+    .crumb b{font-size:22px}
+    .crumb em{font-style:normal;color:#d6dde8}
+    .crumb .light{color:#a4b2c8}
+    .account{font-size:16px;color:#111}
+    .avatar{display:inline-grid;place-items:center;margin-left:12px;width:42px;height:42px;border-radius:50%;background:#c4c9d1;color:#fff}
+    .page{padding:21px}
+    .filters{display:flex;flex-wrap:wrap;gap:14px 16px;align-items:center}
+    .filter{display:flex;align-items:center;gap:12px;font-weight:700;white-space:nowrap}
+    .field{height:44px;width:220px;padding:0 15px;border:1px solid #d8e0ea;border-radius:4px;color:#a6b3c5;background:#fff}
+    .field.short{width:176px}
+    .btn{height:35px;padding:0 17px;border:0;border-radius:3px;color:#fff;background:#3d94ed;font-weight:700}
+    .btn:hover{background:#2f86e3}
+    .btn-row{display:flex;align-items:center;justify-content:space-between;margin:30px 0}
+    .right-buttons{display:flex;gap:11px}
+    .table-wrap{border:1px solid #e4eaf1}
+    .table{width:100%;border-collapse:collapse;table-layout:fixed;text-align:center}
+    .table th{height:78px;color:#8797aa;font-size:16px;font-weight:700}
+    .table td,.table th{border-right:1px solid #e4eaf1;border-bottom:1px solid #e4eaf1}
+    .table td{height:154px;padding:14px 9px;color:#38516a}
+    .table td.title{line-height:1.7}
+    .ops{display:grid;gap:6px;justify-content:center}
+    .ops .btn{height:25px;padding:0 10px;font-size:13px}
+    .danger{background:#ff7040}
+    .highlight{outline:3px solid #f0b84b;outline-offset:3px}
+    .drawer{position:absolute;top:0;right:0;width:700px;height:100vh;z-index:10;background:#fff;box-shadow:-5px 0 18px #0003;padding:22px;overflow:auto;transform:translateX(100%);visibility:hidden;pointer-events:none;transition:transform .28s ease,visibility 0s linear .28s}
+    .drawer.is-open{transform:translateX(0);visibility:visible;pointer-events:auto;transition-delay:0s}
+    @media (prefers-reduced-motion:reduce){.drawer{transition:none}}
+    .drawer-head{display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid #edf1f5;padding-bottom:14px}
+    .drawer h2{margin:0;color:#26384c;font-size:20px}
+    .drawer-close{border:0;background:transparent;color:#98a3b1;font-size:25px;line-height:1}
+    .drawer-filters{display:flex;flex-wrap:wrap;align-items:center;gap:12px 10px;margin:20px 0 16px}
+    .drawer-filters label{font-weight:700}
+    .drawer-field{height:36px;width:190px;padding:0 10px;border:1px solid #d8e0ea;border-radius:4px;color:#718196;background:#fff}
+    .drawer-field.short{width:130px}
+    .drawer-tools{display:flex;align-items:center;justify-content:space-between;padding:12px 0;border-top:1px solid #edf1f5;border-bottom:1px solid #edf1f5}
+    .drawer-tools label{display:flex;align-items:center;gap:7px;font-weight:700}
+    .selected-count{color:#657383}
+    .script-head,.script-row{display:grid;grid-template-columns:34px minmax(0,1fr) 110px 132px;gap:10px;align-items:center}
+    .script-head{padding:12px 8px;color:#8797aa;font-weight:700;background:#f7f9fb}
+    .script-row{min-height:78px;padding:12px 8px;border-bottom:1px solid #edf1f5;color:#38516a}
+    .script-title{line-height:1.55}
+    .script-row input,.script-head input{width:16px;height:16px}
+    .drawer-foot{display:flex;justify-content:flex-end;margin-top:20px}
+    .drawer-foot .btn:disabled{cursor:not-allowed;background:#cbd5df}
+    .toast{position:fixed;top:70px;left:50%;z-index:20;padding:10px 18px;border-radius:4px;color:#fff;background:#26384c;opacity:0;transform:translate(-50%,-8px);transition:.2s}
+    .toast.show{opacity:1;transform:translate(-50%,0)}
+  </style>
+</head>
+<body>
+  <div class="app" data-page-root data-state-id="P06-B-S01">
+    <aside class="side">
+      <div class="logo">✂　视频剪辑 <b>⌃</b></div>
+      <a class="child">成片列表</a>
+      <a class="child">剪辑列表</a>
+      <div class="gap"></div>
+      <a class="nav"><i>♟</i>医生管理<b>⌃</b></a>
+      <a class="child">医生列表</a>
+      <a class="child">报名医生</a>
+      <a class="child">我的医生</a>
+      <a class="child">项目管理</a>
+      <a class="nav active"><i>☷</i>脚本管理<b>⌃</b></a>
+      <a class="child active">脚本列表</a>
+      <a class="child">脚本分类</a>
+      <a class="nav"><i>♧</i>权限管理<b>⌃</b></a>
+      <a class="child">菜单管理</a>
+      <a class="child">角色列表</a>
+      <a class="child">员工部门列表</a>
+      <a class="nav"><i>▣</i>设置<b>⌄</b></a>
+    </aside>
+    <main class="main">
+      <header class="top">
+        <div class="crumb"><b>≡</b><span>首页</span><em>/</em><span>脚本管理</span><em>/</em><span class="light">脚本列表</span></div>
+        <div class="account">超级管理员　15204619721 <span class="avatar">●</span>⌄</div>
+      </header>
+      <section class="page">
+        <div class="filters">
+          <div class="filter">标题⌄ <input class="field" placeholder="请输入脚本标题查询"></div>
+          <div class="filter">创建人 <select class="field short"><option>全部</option></select></div>
+          <div class="filter">脚本分类 <select class="field"><option>请选择</option></select></div>
+          <div class="filter">拍摄记录 <input class="field" placeholder="请输入医生姓名"></div>
+          <div class="filter">已推荐医生 <input class="field" placeholder="请输入已推荐医生姓名"></div>
+        </div>
+        <div class="btn-row">
+          <div><button class="btn">查询</button>　<button class="btn">重置</button>　<button class="btn" id="recycleTrigger" data-change-id="P06-C03">脚本回收</button></div>
+          <div class="right-buttons"><button class="btn">新增脚本</button><button class="btn">导入脚本</button><button class="btn">导出</button><button class="btn">下载模版</button></div>
+        </div>
+        <div class="table-wrap">
+          <table class="table">
+            <thead><tr><th>ID</th><th>脚本标题</th><th>一级分类</th><th>二级分类</th><th>三级分类</th><th>所属组</th><th>创建人</th><th>更新时间</th><th>已推荐医生</th><th>拍摄记录</th><th>被使用数量</th><th>操作</th></tr></thead>
+            <tbody id="scriptListRows"></tbody>
+          </table>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <aside class="drawer is-open" id="recycleDrawer" aria-label="脚本回收抽屉" aria-hidden="false">
+    <div class="drawer-head"><h2>脚本回收</h2><button class="drawer-close" id="closeDrawer" aria-label="关闭">×</button></div>
+    <div class="drawer-filters">
+      <label>标题</label><input class="drawer-field" placeholder="请输入脚本标题">
+      <label>创建人</label><select class="drawer-field short"><option>全部</option></select>
+      <button class="btn">查询</button><button class="btn">重置</button>
+    </div>
+    <div class="drawer-tools"><label><input type="checkbox" id="selectAll"> 全选</label><span class="selected-count">已选 <b id="selectedCount">0</b> 条</span></div>
+    <div class="script-head"><span></span><span>脚本标题</span><span>回收人</span><span>回收时间</span></div>
+    <div id="recycleRows"></div>
+    <div class="drawer-foot"><button class="btn" id="repush" disabled>重新推送给医生</button></div>
+  </aside>
+  <div class="toast" id="toast" role="status"></div>
+
+  <script>
+    (() => {
+      const root = document.querySelector('[data-page-root]');
+      const drawer = document.querySelector('#recycleDrawer');
+      const recycleRows = document.querySelector('#recycleRows');
+      const selectAll = document.querySelector('#selectAll');
+      const selectedCount = document.querySelector('#selectedCount');
+      const repush = document.querySelector('#repush');
+      const toast = document.querySelector('#toast');
+      const scripts = [
+        { id:'51238', title:'苏医之声/心跳快慢，不只是感觉，更关乎儿童高血压的控制', recycler:'冯诗缘', time:'2026-08-24 15:30:50' },
+        { id:'51237', title:'苏医之声/老年高血压心率快，危险为何翻倍来？', recycler:'周亚茹', time:'2026-08-24 15:30:50' },
+        { id:'51236', title:'苏医之声/妇科手术后，吐吐来真要命！', recycler:'潘春波', time:'2026-08-24 16:29:15' },
+        { id:'51235', title:'苏医之声/老人肋骨骨折，为何更要命？', recycler:'陈羽峰', time:'2026-08-24 15:30:50' }
+      ];
+      let toastTimer;
+
+      const showToast = (message) => {
+        toast.textContent = message;
+        toast.classList.add('show');
+        window.clearTimeout(toastTimer);
+        toastTimer = window.setTimeout(() => toast.classList.remove('show'), 1800);
+      };
+
+      const notifyParent = (type, payload) => {
+        if (window.parent !== window) window.parent.postMessage(Object.assign({ type }, payload || {}), '*');
+      };
+
+      const openDrawer = () => {
+        drawer.setAttribute('aria-hidden', 'false');
+        window.requestAnimationFrame(() => drawer.classList.add('is-open'));
+      };
+      const closeDrawer = () => {
+        drawer.classList.remove('is-open');
+        drawer.setAttribute('aria-hidden', 'true');
+      };
+
+      const currentChecks = () => Array.from(recycleRows.querySelectorAll('input[type="checkbox"]'));
+
+      const updateSelection = () => {
+        const checks = currentChecks();
+        const selected = checks.filter((checkbox) => checkbox.checked);
+        selectedCount.textContent = String(selected.length);
+        repush.disabled = selected.length === 0;
+        selectAll.checked = checks.length > 0 && selected.length === checks.length;
+        selectAll.indeterminate = selected.length > 0 && selected.length < checks.length;
+      };
+
+      const addScriptRow = (script) => {
+        const row = document.createElement('div');
+        row.className = 'script-row';
+        const checkbox = document.createElement('input');
+        checkbox.type = 'checkbox';
+        checkbox.value = script.id;
+        checkbox.setAttribute('aria-label', '选择脚本 ' + script.id);
+        checkbox.addEventListener('change', updateSelection);
+        const title = document.createElement('span');
+        title.className = 'script-title';
+        title.textContent = script.id + '　' + script.title;
+        title.title = script.title;
+        const recycler = document.createElement('span');
+        recycler.textContent = script.recycler;
+        const time = document.createElement('span');
+        time.textContent = script.time;
+        row.append(checkbox, title, recycler, time);
+        recycleRows.appendChild(row);
+      };
+
+      const renderBackgroundRows = () => {
+        const tbody = document.querySelector('#scriptListRows');
+        scripts.forEach((script, index) => {
+          const row = document.createElement('tr');
+          const values = [script.id, script.title, '内科', '心血管内科', '', '运营组', '超级管理员', index ? '2026-08-24 15:30:50' : '2026-08-24 16:29:15', '冯诗缘', '', '0'];
+          values.forEach((value, valueIndex) => {
+            const cell = document.createElement('td');
+            if (valueIndex === 1) cell.className = 'title';
+            cell.textContent = value;
+            row.appendChild(cell);
+          });
+          const actions = document.createElement('td');
+          actions.className = 'ops';
+          const edit = document.createElement('button');
+          edit.className = 'btn';
+          edit.type = 'button';
+          edit.textContent = '编辑';
+          const remove = document.createElement('button');
+          remove.className = 'btn danger';
+          remove.type = 'button';
+          remove.textContent = '删除';
+          actions.append(edit, remove);
+          row.appendChild(actions);
+          tbody.appendChild(row);
+        });
+      };
+
+      scripts.forEach(addScriptRow);
+      renderBackgroundRows();
+      selectAll.addEventListener('change', () => {
+        currentChecks().forEach((checkbox) => { checkbox.checked = selectAll.checked; });
+        updateSelection();
+      });
+      document.querySelector('#recycleTrigger').addEventListener('click', openDrawer);
+      document.querySelector('#closeDrawer').addEventListener('click', closeDrawer);
+      repush.addEventListener('click', () => {
+        const count = currentChecks().filter((checkbox) => checkbox.checked).length;
+        if (!count) { showToast('请先选择需要重新推送的脚本'); return; }
+        showToast('已重新推送 ' + count + ' 条脚本给医生');
+        currentChecks().forEach((checkbox) => { checkbox.checked = false; });
+        updateSelection();
+      });
+
+      window.addEventListener('message', (event) => {
+        const message = event.data || {};
+        if (message.type === 'prototype:reset') openDrawer();
+        if (message.type === 'prototype:scenario') openDrawer();
+        if (message.type === 'prototype:set-mode') root.dataset.mode = message.mode || 'prototype';
+        if (message.type === 'prototype:highlight') {
+          const target = document.querySelector('[data-change-id="' + message.changeId + '"]');
+          if (target) {
+            target.classList.add('highlight');
+            target.scrollIntoView({ block: 'center' });
+            window.setTimeout(() => target.classList.remove('highlight'), 1300);
+            notifyParent('prototype:highlight-result', { pageId: 'P06-B', changeId: message.changeId, success: true });
+          }
+        }
+      });
+
+      notifyParent('prototype:page-ready', { pageId: 'P06-B', scenarioId: root.dataset.stateId });
+    })();
+  </script>
+</body>
+</html>

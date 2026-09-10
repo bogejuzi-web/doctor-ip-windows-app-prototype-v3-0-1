@@ -1,0 +1,486 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <link rel="icon" href="data:,">
+  <title>补充视频素材｜原片脚本回显</title>
+  <style>
+    :root {
+      --phone-width: 390px;
+      --ink: #f6f8f7;
+      --green: #77b69a;
+      --green-deep: #316f52;
+      --green-panel: rgba(25, 48, 43, .72);
+      --black: #080808;
+      --control: #1f2d2d;
+      --red: #f44443;
+    }
+
+    * { box-sizing: border-box; }
+    html, body { min-height: 100%; }
+    body {
+      min-height: 100vh;
+      margin: 0;
+      overflow-x: hidden;
+      overflow-y: auto;
+      background: #0b0b0d;
+      color: var(--ink);
+      font-family: "Microsoft YaHei", "PingFang SC", system-ui, sans-serif;
+    }
+
+    button { font: inherit; }
+    button:focus-visible { outline: 3px solid #f2b84b; outline-offset: 3px; }
+
+    .phone {
+      position: relative;
+      width: min(var(--phone-width), 100%);
+      height: auto;
+      aspect-ratio: 390 / 844;
+      min-height: 620px;
+      margin: 0 auto;
+      overflow: hidden;
+      background: #191a1f;
+      border: 2px solid #c8d0cd;
+      border-radius: 48px;
+      box-shadow: 0 1px 0 rgba(255,255,255,.32) inset;
+      isolation: isolate;
+    }
+
+    .top-black {
+      position: absolute;
+      inset: 0 0 auto;
+      z-index: 3;
+      height: 11%;
+      background: #000;
+    }
+
+    .green-dot {
+      position: absolute;
+      top: 25%;
+      right: 6.2%;
+      width: 15px;
+      height: 15px;
+      border-radius: 50%;
+      background: #32d16b;
+    }
+
+    .close-button {
+      position: absolute;
+      top: 56%;
+      left: 5.4%;
+      width: 26px;
+      height: 26px;
+      padding: 0;
+      border: 0;
+      background: transparent;
+      color: transparent;
+      cursor: pointer;
+    }
+    .close-button::before, .close-button::after {
+      content: "";
+      position: absolute;
+      top: 12px;
+      left: 0;
+      width: 30px;
+      height: 4px;
+      border-radius: 3px;
+      background: #c8c9ca;
+    }
+    .close-button::before { transform: rotate(45deg); }
+    .close-button::after { transform: rotate(-45deg); }
+
+    .work-area {
+      position: absolute;
+      inset: 11% 0 15%;
+      overflow: hidden;
+      background-color: var(--green);
+      background-image:
+        linear-gradient(90deg, transparent 0 33.18%, rgba(255,255,255,.22) 33.18% 33.42%, transparent 33.42% 66.26%, rgba(255,255,255,.22) 66.26% 66.5%, transparent 66.5%),
+        linear-gradient(0deg, transparent 0 24.7%, rgba(255,255,255,.2) 24.7% 25%, transparent 25% 49.7%, rgba(255,255,255,.2) 49.7% 50%, transparent 50% 74.7%, rgba(255,255,255,.2) 74.7% 75%, transparent 75%),
+        linear-gradient(180deg, #a1ccb9 0%, #76b39a 48%, #2c6c4c 100%);
+    }
+
+    .canvas-toolbar {
+      position: absolute;
+      top: 4.2%;
+      left: 0;
+      right: 0;
+      z-index: 2;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 6.5%;
+    }
+    .canvas-tool {
+      display: grid;
+      width: 30px;
+      height: 30px;
+      padding: 0;
+      place-items: center;
+      border: 0;
+      background: transparent;
+      color: rgba(255,255,255,.96);
+      cursor: pointer;
+    }
+    .canvas-tool.center { position: absolute; left: 50%; margin-left: 0; transform: translateX(-50%); }
+    .canvas-tool svg { width: 29px; height: 29px; overflow: visible; }
+
+    .script-panel {
+      position: absolute;
+      top: 1.1%;
+      left: 1.55%;
+      right: 1.55%;
+      height: 55.2%;
+      z-index: 1;
+      overflow: hidden;
+      padding: 24.8% 4.1% 4.2%;
+      background: var(--green-panel);
+      color: var(--ink);
+      transition: background .18s ease, opacity .18s ease;
+    }
+    .script-panel.is-hidden { opacity: .08; }
+    .script-panel.is-highlighted { animation: outline-pulse 1.2s ease both; }
+    .script-copy {
+      margin: 0;
+      font-size: clamp(16px, 4.9vw, 19px);
+      font-weight: 500;
+      line-height: 1.34;
+      letter-spacing: .3px;
+      text-shadow: 0 1px 0 rgba(0,0,0,.12);
+    }
+    .script-copy p { margin: 0 0 7px; }
+    .script-copy p:last-child { margin-bottom: 0; }
+
+    .tool-rail {
+      position: absolute;
+      top: 36.5%;
+      right: 1.6%;
+      z-index: 3;
+      display: grid;
+      gap: 5px;
+      width: 30px;
+      color: rgba(215,225,220,.55);
+      text-align: center;
+    }
+    .rail-icon { font-size: 25px; line-height: 1; }
+    .rail-label { margin-top: -1px; font-size: 11px; line-height: 1.1; }
+
+    .canvas-actions {
+      position: absolute;
+      right: 4.4%;
+      top: 51.5%;
+      left: 4.4%;
+      z-index: 4;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .canvas-action {
+      width: 31px;
+      height: 31px;
+      padding: 0;
+      border: 0;
+      background: transparent;
+      color: rgba(255,255,255,.95);
+      cursor: pointer;
+    }
+    .canvas-action svg { width: 31px; height: 31px; }
+
+    .capture-bar {
+      position: absolute;
+      right: 0;
+      bottom: 4%;
+      left: 0;
+      z-index: 5;
+      height: 11.6%;
+      background: var(--control);
+    }
+    .capture-action {
+      position: absolute;
+      bottom: 5%;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 3px;
+      min-width: 58px;
+      padding: 0;
+      border: 0;
+      background: transparent;
+      color: #f7f8f7;
+      cursor: pointer;
+    }
+    .capture-action.delete { left: 15%; }
+    .capture-action.album { right: 20%; }
+    .capture-action small { font-size: 16px; line-height: 1; }
+    .delete-icon {
+      display: grid;
+      width: 26px;
+      height: 19px;
+      place-items: center;
+      color: #31393a;
+      background: #fff;
+      border-radius: 3px;
+      font-size: 22px;
+      font-weight: 800;
+      line-height: 18px;
+      transform: skew(-15deg);
+    }
+    .album-thumb {
+      width: 27px;
+      height: 27px;
+      border: 1px solid rgba(255,255,255,.75);
+      background: linear-gradient(155deg, #9c705a 0 22%, #e2bd9d 22% 48%, #73936c 49% 72%, #3e5c4b 73%);
+    }
+
+    .record-button {
+      position: absolute;
+      top: 11%;
+      left: 50%;
+      width: 64px;
+      height: 64px;
+      padding: 0;
+      border: 5px solid #b9c3c4;
+      border-radius: 50%;
+      background: var(--red);
+      box-shadow: 0 0 0 2px rgba(240,245,243,.35);
+      color: transparent;
+      cursor: pointer;
+      transform: translateX(-50%);
+    }
+    .record-button.is-recording { background: #36bd72; }
+    .record-button::after { content: ""; position: absolute; inset: 19px; border-radius: 3px; background: rgba(255,255,255,.9); opacity: 0; }
+    .record-button.is-recording::after { opacity: 1; }
+
+    .home-indicator {
+      position: absolute;
+      right: 50%;
+      bottom: 1.5%;
+      z-index: 6;
+      width: 150px;
+      height: 4px;
+      border-radius: 4px;
+      background: #b9bec4;
+      transform: translateX(50%);
+    }
+
+    .toast {
+      position: absolute;
+      right: 50%;
+      bottom: 17.5%;
+      z-index: 12;
+      max-width: 78%;
+      padding: 8px 11px;
+      border-radius: 7px;
+      background: rgba(16,22,21,.86);
+      color: #fff;
+      font-size: 12px;
+      opacity: 0;
+      pointer-events: none;
+      transform: translate(50%, 8px);
+      transition: opacity .18s ease, transform .18s ease;
+    }
+    .toast.show { opacity: 1; transform: translate(50%, 0); }
+
+    .script-status {
+      position: absolute;
+      width: 1px;
+      height: 1px;
+      overflow: hidden;
+      clip: rect(0 0 0 0);
+      white-space: nowrap;
+    }
+    .settings-popover {
+      position: absolute;
+      right: 9%;
+      bottom: 9%;
+      z-index: 11;
+      width: 176px;
+      padding: 10px;
+      border: 1px solid rgba(255,255,255,.4);
+      border-radius: 8px;
+      background: rgba(21,40,36,.95);
+      color: #f3f7f5;
+      font-size: 12px;
+      line-height: 1.5;
+      box-shadow: 0 6px 20px rgba(0,0,0,.18);
+    }
+    .settings-popover[hidden] { display: none; }
+    .settings-popover strong { display: block; margin-bottom: 4px; color: #79d1ff; }
+
+    @keyframes outline-pulse {
+      0%, 100% { box-shadow: inset 0 0 0 0 rgba(241, 182, 65, 0); }
+      40% { box-shadow: inset 0 0 0 4px rgba(241, 182, 65, .95); }
+    }
+
+    @media (max-width: 330px) {
+      .phone { border-radius: 35px; }
+      .script-copy { font-size: 16px; }
+      .capture-action.album { right: 15%; }
+    }
+  </style>
+</head>
+<body>
+  <main class="phone" data-page-root data-state-id="P01-S01" aria-label="补充视频素材页面">
+    <section class="top-black" aria-label="顶部工具栏">
+      <span class="green-dot" aria-label="录制状态正常"></span>
+      <button class="close-button" id="closeButton" type="button" aria-label="关闭补充素材页面">关闭</button>
+    </section>
+
+    <section class="work-area" aria-label="脚本录制画面">
+      <div class="canvas-toolbar" aria-label="画布工具">
+        <button class="canvas-tool" id="visibilityButton" type="button" aria-label="隐藏或显示脚本">
+          <svg viewBox="0 0 32 32" aria-hidden="true">
+            <path d="M3 16s4.6-8 13-8 13 8 13 8-4.6 8-13 8S3 16 3 16Z" fill="none" stroke="currentColor" stroke-width="2"/>
+            <circle cx="16" cy="16" r="4" fill="none" stroke="currentColor" stroke-width="2"/>
+            <path d="M5 27 27 5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+          </svg>
+        </button>
+        <button class="canvas-tool center" id="rotateButton" type="button" aria-label="旋转画布">
+          <svg viewBox="0 0 32 32" aria-hidden="true">
+            <path d="M6 14V7h7M6 8c3-4 9-5 14-2 3 2 5 5 5 9" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+            <path d="m25 11 1 6-6-1M12 16h12v10H12z" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/>
+          </svg>
+        </button>
+      </div>
+
+      <section class="script-panel" id="scriptPanel" data-change-id="P01-C01" aria-label="原片脚本回显区域">
+        <div class="script-copy" id="scriptCopy">
+          <p>手术是肠癌治疗最主要的治疗手段，特别是对早期结直肠癌而言，通过外科手术可“斩草除根”。那目前，肠癌手术主要有3种形式：</p>
+          <p>●开腹手术，这是传统治疗方法，该术式视野广、技术成熟，但切口大，易引发术后并发症，术后恢复慢。</p>
+          <p>●腹腔镜手术　广泛使用　这个术式切口</p>
+        </div>
+      </section>
+
+      <div class="tool-rail" aria-hidden="true">
+        <span class="rail-icon">◌</span><span class="rail-label">旋转</span>
+        <span class="rail-icon">◉</span><span class="rail-label">美化</span>
+        <span class="rail-icon">⊕</span><span class="rail-label">参考线</span>
+      </div>
+
+      <div class="canvas-actions" aria-label="画布快捷操作">
+        <button class="canvas-action" id="moveButton" type="button" aria-label="移动画布">
+          <svg viewBox="0 0 32 32" aria-hidden="true">
+            <path d="M16 3v26M3 16h26M16 3l-4 4M16 3l4 4M16 29l-4-4M16 29l4-4M3 16l4-4M3 16l4 4M29 16l-4-4M29 16l-4 4" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+        </button>
+        <button class="canvas-action" id="settingsButton" type="button" aria-label="打开脚本设置">
+          <svg viewBox="0 0 32 32" aria-hidden="true">
+            <path d="m16 3 2 3a10 10 0 0 1 3 1l3-1 3 3-1 3a10 10 0 0 1 1 3l3 2-3 3a10 10 0 0 1-1 3l1 3-3 3-3-1a10 10 0 0 1-3 1l-2 3-3-3a10 10 0 0 1-3-1l-3 1-3-3 1-3a10 10 0 0 1-1-3l-3-2 3-3a10 10 0 0 1 1-3l-1-3 3-3 3 1a10 10 0 0 1 3-1Z" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/>
+            <circle cx="16" cy="16" r="4" fill="none" stroke="currentColor" stroke-width="1.8"/>
+          </svg>
+        </button>
+        <button class="canvas-action" id="expandButton" type="button" aria-label="展开画布">
+          <svg viewBox="0 0 32 32" aria-hidden="true"><path d="M5 13V5h8M5 5l8 8M27 19v8h-8M27 27l-8-8" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </button>
+      </div>
+    </section>
+
+    <section class="capture-bar" aria-label="拍摄操作栏">
+      <button class="capture-action delete" id="deleteButton" type="button" aria-label="删除当前片段">
+        <span class="delete-icon" aria-hidden="true">×</span><small>删除</small>
+      </button>
+      <button class="record-button" id="recordButton" type="button" aria-label="开始录制">开始录制</button>
+      <button class="capture-action album" id="albumButton" type="button" aria-label="打开相册">
+        <span class="album-thumb" aria-hidden="true"></span><small>相册</small>
+      </button>
+    </section>
+
+    <div class="settings-popover" id="settingsPopover" hidden>
+      <strong>原片脚本已回显</strong>
+      从“驳回原片补充素材”入口进入后，继续使用本原片脚本拍摄补充素材。
+    </div>
+    <p class="script-status" id="scriptStatus" role="status" aria-live="polite">当前脚本已回显</p>
+    <div class="toast" id="toast" role="status" aria-live="polite"></div>
+    <div class="home-indicator" aria-hidden="true"></div>
+  </main>
+
+  <script>
+    (() => {
+      const pageId = 'P01'
+      const defaultScenario = 'P01-S01'
+      const root = document.querySelector('[data-page-root]')
+      const scriptPanel = document.querySelector('#scriptPanel')
+      const scriptStatus = document.querySelector('#scriptStatus')
+      const toast = document.querySelector('#toast')
+      const settingsPopover = document.querySelector('#settingsPopover')
+      const visibilityButton = document.querySelector('#visibilityButton')
+      const recordButton = document.querySelector('#recordButton')
+      const params = new URLSearchParams(window.location.search)
+      let scenarioId = params.get('prototypeScenario') || defaultScenario
+      let toastTimer = 0
+
+      const send = (message) => {
+        if (window.parent !== window) window.parent.postMessage(message, '*')
+      }
+
+      const notify = (message) => {
+        toast.textContent = message
+        toast.classList.add('show')
+        window.clearTimeout(toastTimer)
+        toastTimer = window.setTimeout(() => toast.classList.remove('show'), 1800)
+      }
+
+      const applyScenario = (nextScenario, report = true) => {
+        scenarioId = nextScenario || defaultScenario
+        root.dataset.stateId = scenarioId
+        const visible = scenarioId === defaultScenario
+        scriptPanel.classList.toggle('is-hidden', !visible)
+        scriptStatus.textContent = visible ? '当前脚本已回显' : '当前脚本状态已切换'
+        if (report) send({ type: 'prototype:state-changed', pageId, scenarioId })
+      }
+
+      const reset = () => {
+        applyScenario(defaultScenario, false)
+        settingsPopover.hidden = true
+        recordButton.classList.remove('is-recording')
+        recordButton.setAttribute('aria-label', '开始录制')
+      }
+
+      window.addEventListener('message', (event) => {
+        const message = event.data || {}
+        if (message.type === 'prototype:scenario') applyScenario(message.scenarioId || defaultScenario)
+        if (message.type === 'prototype:reset') reset()
+        if (message.type === 'prototype:set-mode') root.dataset.mode = message.mode || 'prototype'
+        if (message.type === 'prototype:highlight') {
+          const target = document.querySelector(`[data-change-id="${message.changeId || ''}"]`)
+          if (!target) {
+            send({ type: 'prototype:highlight-result', pageId, changeId: message.changeId, success: false, message: '未找到脚本回显区域' })
+            return
+          }
+          target.classList.remove('is-highlighted')
+          void target.offsetWidth
+          target.classList.add('is-highlighted')
+          target.scrollIntoView({ block: 'center', behavior: 'smooth' })
+          send({ type: 'prototype:highlight-result', pageId, changeId: message.changeId, success: true })
+        }
+      })
+
+      visibilityButton.addEventListener('click', () => {
+        const hidden = scriptPanel.classList.toggle('is-hidden')
+        visibilityButton.setAttribute('aria-label', hidden ? '显示脚本' : '隐藏脚本')
+        scriptStatus.textContent = hidden ? '脚本已隐藏' : '当前脚本已回显'
+        notify(hidden ? '脚本已隐藏' : '原片脚本已回显')
+      })
+      document.querySelector('#rotateButton').addEventListener('click', () => notify('已旋转预览画布'))
+      document.querySelector('#moveButton').addEventListener('click', () => notify('可拖动画布调整脚本位置'))
+      document.querySelector('#expandButton').addEventListener('click', () => notify('已展开画布预览'))
+      document.querySelector('#closeButton').addEventListener('click', () => notify('已退出补充素材页面'))
+      document.querySelector('#deleteButton').addEventListener('click', () => notify('当前片段已标记为删除'))
+      document.querySelector('#albumButton').addEventListener('click', () => notify('打开相册选择补充视频'))
+      document.querySelector('#settingsButton').addEventListener('click', () => {
+        settingsPopover.hidden = !settingsPopover.hidden
+        if (!settingsPopover.hidden) notify('脚本回显状态已确认')
+      })
+      recordButton.addEventListener('click', () => {
+        const recording = recordButton.classList.toggle('is-recording')
+        recordButton.setAttribute('aria-label', recording ? '停止录制' : '开始录制')
+        notify(recording ? '正在录制补充视频素材' : '录制片段已保存')
+      })
+
+      applyScenario(scenarioId, false)
+      send({ type: 'prototype:page-ready', pageId, scenarioId })
+    })()
+  </script>
+</body>
+</html>

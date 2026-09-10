@@ -1,0 +1,249 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <link rel="icon" href="data:,">
+  <title>脚本回收｜项目列表、编辑项目</title>
+  <style>
+    *{box-sizing:border-box}
+    body{margin:0;min-width:1440px;font:14px/1.45 Microsoft YaHei;color:#31445b}
+    button,input,select{font:inherit}
+    button{cursor:pointer}
+    .app{display:grid;grid-template-columns:232px 1fr;min-height:100vh}
+    .side{background:#29435e;color:#dbe7f0}
+    .nav{height:62px;padding:20px}
+    .nav.active{background:#36516d}
+    .child{display:block;padding:18px 0 0 44px;color:#d3e0ed}
+    .child.active{padding-bottom:18px;background:#1f354a;color:#54b7ff}
+    .top{height:56px;padding:17px 20px;border-bottom:1px solid #edf1f5}
+    .page{padding:20px}
+    .title{font-size:18px;font-weight:700;margin-bottom:24px}
+    .input,.select{height:44px;border:1px solid #d9e1eb;border-radius:4px;padding:0 15px;color:#718196;background:#fff}
+    .btn{height:36px;border:0;border-radius:3px;padding:0 17px;color:#fff;background:#4098f5;font-weight:700}
+    .btn:hover{background:#2f86e3}
+    .red{background:#f2666b}
+    .table{width:100%;border-collapse:collapse;margin-top:22px;table-layout:fixed}
+    .table th,.table td{border:1px solid #e4eaf1;padding:13px 11px;text-align:left;vertical-align:middle}
+    .table th{color:#8999ac;font-weight:700}
+    .table td{height:58px}
+    .table .center{text-align:center}
+    .table .wrap{line-height:1.55}
+    .modal-mask{position:fixed;inset:0;z-index:5;background:#13203377;display:grid;place-items:center}
+    .modal-mask[hidden]{display:none}
+    .modal{width:1024px;max-height:88vh;overflow:auto;background:#fff;padding:18px;border-radius:4px}
+    .modal h2{margin:0 0 25px}
+    .close{float:right;border:0;background:transparent;color:#98a3b1;font-size:24px;line-height:1}
+    .form{display:grid;grid-template-columns:120px 1fr;gap:20px 14px;align-items:center;margin:0 35px}
+    .form>label{font-weight:700;text-align:right}
+    .radio-group{display:flex;align-items:center;gap:18px;flex-wrap:wrap}
+    .radio{color:#4297f3}
+    .schedule{display:inline-flex;align-items:center;gap:8px;flex-wrap:wrap}
+    .schedule[hidden]{display:none}
+    .schedule .select{height:36px;padding:0 10px}
+    .schedule .input{height:36px;width:90px;padding:0 10px}
+    .categories{grid-column:1/-1;display:flex;flex-wrap:wrap;gap:15px 27px;margin:10px 35px;line-height:1.5;color:#4297f3}
+    .foot{text-align:right;margin:28px 0 0}
+    .foot button:not(.btn){height:36px;padding:0 15px;border:1px solid #d9e1eb;border-radius:3px;background:#fff;color:#64758a}
+    .toast{position:fixed;top:70px;left:50%;z-index:20;padding:10px 18px;border-radius:4px;color:#fff;background:#26384c;opacity:0;transform:translate(-50%,-8px);transition:.2s}
+    .toast.show{opacity:1;transform:translate(-50%,0)}
+    .highlight{outline:3px solid #f0b746;outline-offset:3px}
+  </style>
+</head>
+<body>
+  <div class="app" data-page-root data-state-id="P06-A-S01">
+    <aside class="side">
+      <div class="nav">♟　首页</div>
+      <div class="nav">▥　数据统计　⌄</div>
+      <div class="nav">▣　待办事项　⌄</div>
+      <div class="nav">▤　合同管理　⌄</div>
+      <div class="nav">✂　视频剪辑　⌄</div>
+      <div class="nav active">♟　医生管理　⌃</div>
+      <div class="child">医生列表</div>
+      <div class="child">报名医生</div>
+      <div class="child">我的医生</div>
+      <div class="child active">项目管理</div>
+      <div class="nav">☷　脚本管理　⌄</div>
+      <div class="nav">♧　权限管理　⌄</div>
+      <div class="nav">⚙　设置　⌄</div>
+    </aside>
+    <main>
+      <header class="top">☰　首页　/　医生管理　/　项目管理 <span style="float:right">超级管理员　15204619721　●⌄</span></header>
+      <section class="page" id="projectList">
+        <button class="btn" style="float:right">＋ 新增项目</button>
+        <div class="title">项目列表</div>
+        <b>项目名称：</b>　<input class="input" placeholder="请输入项目名称">
+        <button class="btn">查询</button>　<button class="input" style="height:44px">重置</button>
+        <table class="table">
+          <thead>
+            <tr>
+              <th style="width:5%">项目Id</th>
+              <th style="width:16%">项目名称</th>
+              <th style="width:16%">协议模板</th>
+              <th style="width:16%">医生端展示名称</th>
+              <th style="width:16%">创建时间</th>
+              <th>项目账户</th>
+              <th>精选脚本</th>
+              <th data-change-id="P06-C01">脚本回收机制</th>
+              <th>回收时间</th>
+              <th style="width:15%">操作</th>
+            </tr>
+          </thead>
+          <tbody id="projectRows"></tbody>
+        </table>
+      </section>
+    </main>
+  </div>
+
+  <div class="modal-mask" id="editProject" hidden>
+    <section class="modal" aria-label="编辑项目">
+      <h2>编辑项目 <button class="close" id="closeEdit" aria-label="关闭">×</button></h2>
+      <div class="form">
+        <label>* 项目名称</label>
+        <input class="input" value="蒲公英·润医星火医生IP科普培育计划">
+        <label>* 医生端展示名称</label>
+        <input class="input" value="蒲公英·润医星火医生IP科普培育计划">
+        <label>* 签署协议</label>
+        <select class="select"><option>蒲公英·润医星火医生IP科普培育计划</option></select>
+        <label>项目账户</label>
+        <span class="radio-group radio">● 未开启　○ 开启</span>
+        <label>是否自动进入AI剪辑</label>
+        <span class="radio-group radio">● 是　○ 否</span>
+        <label>拍摄内容</label>
+        <span class="radio-group radio">☑ 视频　□ 音频</span>
+        <label>精选脚本</label>
+        <span class="radio-group radio">● 显示　○ 隐藏</span>
+        <label>项目脚本拍摄限制</label>
+        <span>同一脚本拍摄　<input class="input" style="width:115px" placeholder="为空无限制">　次后隐藏</span>
+        <label data-change-id="P06-C02">脚本回收机制</label>
+        <div class="radio-group">
+          <label class="radio"><input type="radio" name="recycle" id="recycleNo" checked> 无</label>
+          <label class="radio"><input type="radio" name="recycle" id="recycleYes"> 是</label>
+          <span class="schedule" id="recycleSet" hidden>
+            按
+            <select class="select" id="recycleType">
+              <option>每月固定时间</option>
+              <option>推送日</option>
+            </select>
+            <select class="select" id="recycleDay">
+              <option>自然日 15 日</option>
+              <option>自然日 1 日</option>
+              <option>自然日 5 日</option>
+              <option>自然日 10 日</option>
+              <option>自然日 20 日</option>
+              <option>自然日 25 日</option>
+              <option>自然日最后一天</option>
+            </select>
+            <input class="input" id="recycleTime" value="10:00" aria-label="回收时间">
+          </span>
+        </div>
+        <label>精选分类展示</label>
+        <span class="radio-group radio">☑ 新增分类是否自动添加</span>
+      </div>
+      <div class="categories">☑ 全选　 ☑ 北京春播　 ☑ 诺和诺德　 ☑ 医路领航　 ☑ 医路平安　 ☑ 生殖科　 ☑ 中西医结合科　 ☑ 临床营养科　 ☑ 医美类　 ☑ 全民健康类　 ☑ 康复科　 ☑ 医学科　 ☑ 急诊科　 ☑ 精神心理科　 ☑ 肿瘤科　 ☑ 五官科　 ☑ 皮肤性病科　 ☑ 男科　 ☑ 儿科</div>
+      <div class="foot"><button id="cancelEdit">取消</button>　<button class="btn" id="saveEdit">确认</button></div>
+    </section>
+  </div>
+  <div class="toast" id="toast" role="status"></div>
+
+  <script>
+    (() => {
+      const root = document.querySelector('[data-page-root]');
+      const modal = document.querySelector('#editProject');
+      const rows = document.querySelector('#projectRows');
+      const toast = document.querySelector('#toast');
+      const projects = [
+        ['224','蒲公英·润医星火医生IP科普培育计划','蒲公英·润医星火医生IP科普培育计划','蒲公英·润医星火医生IP科普培育计划','2026-08-20 13:39:08','未分配','显示','是','每月 15 日 10:00'],
+        ['223','新版AI剪辑测试项目','免费医生','新版AI剪辑测试项目','2026-08-19 16:05:00','未分配','显示','无','-'],
+        ['222','常州华森','付费医生','常州华森医生IP打造','2026-08-19 15:41:59','未分配','显示','无','-'],
+        ['220','“京医护航”科普短视频项目','“京医护航”科普短视频项目','“京医护航”科普短视频项目','2026-08-04 13:57:01','未分配','显示','无','-']
+      ];
+      let toastTimer;
+
+      const showToast = (message) => {
+        toast.textContent = message;
+        toast.classList.add('show');
+        window.clearTimeout(toastTimer);
+        toastTimer = window.setTimeout(() => toast.classList.remove('show'), 1600);
+      };
+
+      const notifyParent = (type, payload) => {
+        if (window.parent !== window) window.parent.postMessage(Object.assign({ type }, payload || {}), '*');
+      };
+
+      const setState = (stateId) => {
+        root.dataset.stateId = stateId;
+        modal.hidden = stateId !== 'P06-A-S02';
+        notifyParent('prototype:state-changed', { pageId: 'P06-A', scenarioId: stateId });
+      };
+
+      const addCell = (row, value, className) => {
+        const cell = document.createElement('td');
+        if (className) cell.className = className;
+        cell.textContent = value;
+        row.appendChild(cell);
+        return cell;
+      };
+
+      const renderProjects = () => {
+        rows.replaceChildren();
+        projects.forEach((project) => {
+          const row = document.createElement('tr');
+          project.forEach((value, index) => addCell(row, value, index === 0 || index > 4 ? 'center' : 'wrap'));
+          const actions = document.createElement('td');
+          actions.className = 'center';
+          const edit = document.createElement('button');
+          edit.className = 'btn editBtn';
+          edit.type = 'button';
+          edit.textContent = '编辑';
+          edit.addEventListener('click', () => setState('P06-A-S02'));
+          const scripts = document.createElement('button');
+          scripts.className = 'btn';
+          scripts.type = 'button';
+          scripts.textContent = '查看脚本';
+          scripts.addEventListener('click', () => notifyParent('prototype:select-page', { pageId: 'P06-B' }));
+          const remove = document.createElement('button');
+          remove.className = 'btn red';
+          remove.type = 'button';
+          remove.textContent = '删除';
+          actions.append(edit, document.createTextNode(' '), scripts, document.createTextNode(' '), remove);
+          row.appendChild(actions);
+          rows.appendChild(row);
+        });
+      };
+
+      const syncSchedule = () => {
+        document.querySelector('#recycleSet').hidden = !document.querySelector('#recycleYes').checked;
+      };
+
+      document.querySelector('#recycleYes').addEventListener('change', syncSchedule);
+      document.querySelector('#recycleNo').addEventListener('change', syncSchedule);
+      document.querySelector('#closeEdit').addEventListener('click', () => setState('P06-A-S01'));
+      document.querySelector('#cancelEdit').addEventListener('click', () => setState('P06-A-S01'));
+      document.querySelector('#saveEdit').addEventListener('click', () => {
+        setState('P06-A-S01');
+        showToast('项目回收机制已保存');
+      });
+      window.addEventListener('message', (event) => {
+        const message = event.data || {};
+        if (message.type === 'prototype:scenario') setState(message.scenarioId || 'P06-A-S01');
+        if (message.type === 'prototype:reset') setState('P06-A-S01');
+        if (message.type === 'prototype:set-mode') root.dataset.mode = message.mode || 'prototype';
+        if (message.type === 'prototype:highlight') {
+          const target = document.querySelector('[data-change-id="' + message.changeId + '"]');
+          if (target) {
+            target.classList.add('highlight');
+            target.scrollIntoView({ block: 'center' });
+            window.setTimeout(() => target.classList.remove('highlight'), 1300);
+            notifyParent('prototype:highlight-result', { pageId: 'P06-A', changeId: message.changeId, success: true });
+          }
+        }
+      });
+
+      renderProjects();
+      setState(new URLSearchParams(window.location.search).get('prototypeScenario') || 'P06-A-S01');
+      notifyParent('prototype:page-ready', { pageId: 'P06-A', scenarioId: root.dataset.stateId });
+    })();
+  </script>
+</body>
+</html>

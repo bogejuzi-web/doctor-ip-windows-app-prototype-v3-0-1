@@ -1,0 +1,206 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="icon" href="data:,">
+  <title>视频详情｜直接成片交付</title>
+  <style>
+    :root { --nav:#29435e; --nav-deep:#1f354a; --blue:#4398f5; --green:#61c637; --orange:#f29238; --line:#edf0f3; --text:#132033; --muted:#7e91a7; }
+    * { box-sizing:border-box; }
+    html,body { min-height:100%; }
+    body { margin:0; min-width:1180px; color:var(--text); background:#f7f8fa; font:14px/1.45 "Microsoft YaHei","PingFang SC",system-ui,sans-serif; }
+    button,input { font:inherit; }
+    button { cursor:pointer; }
+    button:focus-visible,input:focus-visible { outline:3px solid rgba(242,146,56,.35); outline-offset:2px; }
+    .app { display:grid; grid-template-columns:232px minmax(0,1fr); min-height:100vh; }
+    .sidebar { min-height:100vh; color:#dbe6f0; background:var(--nav); }
+    .brand { display:flex; align-items:center; height:56px; padding:0 21px; gap:16px; color:#fff; font-size:16px; }
+    .brand b { font-size:22px; font-weight:400; }
+    .nav-item,.nav-child { display:flex; align-items:center; min-height:62px; padding:0 21px; gap:17px; color:#dbe6f0; text-decoration:none; }
+    .nav-item .icon { width:16px; text-align:center; font-size:18px; }
+    .nav-item .chev { margin-left:auto; color:#88a0b7; font-size:16px; }
+    .nav-item.active { color:#fff; background:#36516d; font-weight:700; }
+    .nav-child { min-height:56px; padding-left:43px; color:#cbd9e6; font-size:14px; }
+    .nav-child.active { color:#59b8ff; background:var(--nav-deep); }
+    .nav-gap { height:10px; }
+    .main-shell { min-width:0; }
+    .topbar { display:flex; align-items:center; justify-content:space-between; height:56px; padding:0 22px 0 18px; background:#fff; border-bottom:1px solid #f0f1f3; }
+    .breadcrumb { display:flex; align-items:center; gap:13px; color:#111e2e; font-size:14px; }
+    .menu { padding:0; border:0; background:transparent; font-size:22px; }
+    .breadcrumb .slash { color:#d4dbe3; }
+    .breadcrumb .muted { color:#aebbd0; }
+    .account { display:flex; align-items:center; gap:12px; color:#111; font-size:16px; }
+    .avatar { display:grid; width:42px; height:42px; place-items:center; border-radius:50%; color:#fff; background:#c4c9d1; font-size:24px; }
+    .layout { display:grid; grid-template-columns:396px minmax(0,1fr); min-height:calc(100vh - 56px); }
+    .info-rail { padding:0 0 24px; background:#f2f3f5; }
+    .info-card { margin-bottom:12px; padding:10px 20px 17px; background:rgba(255,255,255,.55); }
+    .info-card h2 { margin:0 0 8px; color:#142131; font-size:18px; line-height:1.2; }
+    .state-row { display:flex; align-items:center; gap:8px; }
+    .tab { padding:4px 10px; color:#26394d; background:#fff; font-size:14px; }
+    .tab.selected { color:#fff; background:var(--blue); }
+    .cancel { margin-left:auto; color:#8a98aa; }
+    .subtle { margin:15px 0 18px; color:#53687f; }
+    .pending { color:#ff5a57; text-align:right; }
+    .kv { display:grid; grid-template-columns:110px minmax(0,1fr); row-gap:8px; margin:0; }
+    .kv dt { color:#25384f; }
+    .kv dd { margin:0; color:#0e1c2e; }
+    .clip-title { display:inline-flex; align-items:center; gap:4px; max-width:235px; }
+    .pencil { color:#1b4e77; font-size:13px; }
+    .timeline { margin-top:13px; padding-left:2px; }
+    .timeline-item { position:relative; padding-left:30px; min-height:69px; }
+    .timeline-item::before { content:""; position:absolute; top:6px; left:0; width:12px; height:12px; border-radius:50%; background:var(--blue); }
+    .timeline-item::after { content:""; position:absolute; top:18px; bottom:-5px; left:5px; width:1px; background:#dce4ed; }
+    .timeline-item:last-child::after { display:none; }
+    .timeline-name { font-weight:700; }
+    .timeline-meta { display:flex; justify-content:space-between; margin-top:8px; color:#8b9bb0; }
+    .content { position:relative; padding:10px 20px 30px; background:#fff; }
+    .source-heading { display:flex; align-items:center; gap:12px; min-height:34px; font-size:18px; font-weight:700; }
+    .source-heading .fold { padding:5px 12px; border:0; border-radius:3px; color:#fff; background:#4997ef; font-size:13px; }
+    .down { color:#8797a8; font-size:16px; }
+    .source-grid { display:grid; grid-template-columns:366px minmax(0,1fr); gap:21px; margin-top:4px; }
+    .source-label { margin:0 0 4px 8px; font-size:18px; font-weight:700; }
+    .video-time { float:right; margin-top:-26px; color:#8b9caf; font-size:13px; font-weight:400; }
+    .video-box { position:relative; height:366px; overflow:hidden; background:linear-gradient(#000 0 7.5%, #dedede 7.5% 92.5%, #000 92.5%); }
+    .wave { position:absolute; top:23%; left:7%; width:86%; height:55%; display:flex; align-items:center; justify-content:center; gap:3px; }
+    .wave i { display:block; width:5px; background:#aaa; border-radius:4px; }
+    .wave i:nth-child(1),.wave i:nth-child(18){height:8px}.wave i:nth-child(2),.wave i:nth-child(17){height:18px}.wave i:nth-child(3),.wave i:nth-child(16){height:31px}.wave i:nth-child(4),.wave i:nth-child(15){height:48px}.wave i:nth-child(5),.wave i:nth-child(14){height:69px}.wave i:nth-child(6),.wave i:nth-child(13){height:92px}.wave i:nth-child(7),.wave i:nth-child(12){height:132px}.wave i:nth-child(8),.wave i:nth-child(11){height:170px}.wave i:nth-child(9),.wave i:nth-child(10){height:114px}
+    .play { position:absolute; top:50%; left:50%; display:grid; width:78px; height:78px; place-items:center; border-radius:50%; color:#eee; background:rgba(82,82,82,.58); font-size:37px; transform:translate(-50%,-50%); }
+    .source-name { display:flex; align-items:center; justify-content:space-between; margin-top:14px; color:#182d41; font-size:16px; }
+    .file-icon { color:#1d4c73; }
+    .pills { display:flex; flex-wrap:wrap; gap:7px 12px; margin-top:7px; }
+    .pill { min-width:60px; padding:3px 13px; border:0; border-radius:15px; color:#fff; background:#489af4; font-size:13px; }
+    .pill.muted { background:#8dc1fa; }
+    .ocr-title { margin:0 0 4px 10px; font-size:18px; font-weight:700; }
+    .ocr-title .save-ocr { float:right; margin-top:-4px; padding:7px 18px; border:0; border-radius:3px; color:#fff; background:#9fcafb; font-size:13px; }
+    .ocr-title .copy { float:right; margin:2px 28px 0 0; color:#b8c4d4; font-size:12px; font-weight:400; }
+    .ocr-panel { position:relative; height:366px; overflow:hidden; border:1px solid #d8dfe8; border-radius:3px; color:#aab7c7; }
+    .ocr-placeholder { padding:11px 17px; }
+    .ocr-button { position:absolute; top:50%; left:50%; padding:12px 23px; border:0; border-radius:3px; color:#fff; background:var(--blue); transform:translate(-50%,-50%); }
+    .review-actions { display:flex; flex-wrap:wrap; gap:10px; margin-top:62px; padding-left:426px; }
+    .action { min-width:133px; padding:10px 24px; border:0; border-radius:22px; color:#fff; background:var(--blue); font-size:16px; font-weight:700; }
+    .action.ai { background:var(--green); }
+    .action.direct { min-width:168px; background:var(--orange); }
+    .delivery-notice { display:none; margin:22px 0 0 426px; padding:12px 15px; border:1px solid #bce7b5; border-radius:4px; color:#2f7d23; background:#f2fff0; }
+    .delivery-notice.show { display:block; }
+    .highlight { outline:3px solid #f2b84b; outline-offset:4px; animation:flash 1.3s ease both; }
+    .more-sources { display:none; margin:10px 0 0 8px; padding:10px 12px; border:1px dashed #cbd7e5; border-radius:4px; color:#60758c; }
+    .more-sources.show { display:block; }
+    .source-check { display:inline-flex; align-items:center; gap:7px; margin:0 0 8px 8px; color:#4d6580; font-size:13px; font-weight:400; }
+    .source-check input { width:16px; height:16px; accent-color:#489af4; }
+    .additional-source { display:none; margin-top:20px; padding-top:18px; border-top:1px solid #edf1f5; }
+    .additional-source.show { display:grid; }
+    .source-grid.additional-source .video-box { height:210px; }
+    .source-grid.additional-source .source-name { font-size:14px; }
+    .toast { position:fixed; top:72px; left:50%; z-index:20; padding:10px 15px; border-radius:5px; color:#fff; background:rgba(28,40,54,.92); opacity:0; pointer-events:none; transform:translate(-50%,-8px); transition:.18s; }
+    .toast.show { opacity:1; transform:translate(-50%,0); }
+    .modal-backdrop { position:fixed; inset:0; z-index:30; display:grid; place-items:center; padding:24px; background:rgba(20,29,41,.48); }
+    .modal-backdrop[hidden] { display:none; }
+    .modal { width:min(670px,92vw); border-radius:8px; overflow:hidden; background:#fff; box-shadow:0 18px 54px rgba(12,23,36,.26); }
+    .modal-head { display:flex; align-items:center; justify-content:space-between; padding:17px 20px; border-bottom:1px solid #e9edf2; }
+    .modal-head h2 { margin:0; font-size:20px; }
+    .modal-close { border:0; background:transparent; color:#8d9aa9; font-size:25px; }
+    .modal-body { padding:18px 20px 14px; }
+    .modal-intro { margin:0 0 13px; color:#657b90; }
+    .source-option { display:flex; align-items:center; gap:13px; margin:9px 0; padding:12px; border:1px solid #e1e7ee; border-radius:5px; cursor:pointer; }
+    .source-option:hover,.source-option.selected { border-color:#66aaf4; background:#f4f9ff; }
+    .source-option input { width:17px; height:17px; accent-color:#489af4; }
+    .source-thumb { width:54px; height:40px; background:linear-gradient(#111 0 16%,#d8d8d8 16% 84%,#111 84%); }
+    .source-option strong { display:block; color:#253a4e; }
+    .source-option small { display:block; margin-top:3px; color:#8b9cb0; }
+    .route-note { margin-top:13px; padding:10px 12px; border-left:3px solid #f1a34d; color:#6e5a43; background:#fff8ef; line-height:1.6; }
+    .error { min-height:20px; margin:10px 0 0; color:#ef5454; }
+    .modal-foot { display:flex; justify-content:flex-end; gap:9px; padding:13px 20px; border-top:1px solid #edf0f3; }
+    .modal-foot button { min-width:82px; padding:8px 16px; border:1px solid #dce3ea; border-radius:4px; background:#fff; color:#53687b; }
+    .modal-foot .confirm { border-color:#f29238; color:#fff; background:#f29238; }
+    .success-box { display:none; padding:28px 20px; text-align:center; }
+    .success-box.show { display:block; }
+    .success-icon { display:grid; width:48px; height:48px; margin:0 auto 12px; place-items:center; border-radius:50%; color:#fff; background:#61c637; font-size:28px; }
+    .success-box h3 { margin:0 0 8px; font-size:20px; }
+    .success-box p { margin:0; color:#688096; }
+    .modal.is-success .selection-view { display:none; }
+    .modal.is-success .success-box { display:block; }
+    @keyframes flash { 0%,100%{outline-color:rgba(242,184,75,0)} 35%,70%{outline-color:#f2b84b} }
+    @media (max-width:1380px) { .layout{grid-template-columns:350px minmax(0,1fr)} .review-actions{padding-left:260px}.delivery-notice{margin-left:260px}.source-grid{grid-template-columns:330px minmax(0,1fr)}.video-box,.ocr-panel{height:330px} }
+  </style>
+</head>
+<body>
+  <div class="app" data-page-root data-state-id="P02-S01">
+    <aside class="sidebar" aria-label="主导航">
+      <div class="brand"><b>♟</b><span>首页</span></div>
+      <a class="nav-item" href="#"><span class="icon">▥</span><span>数据统计</span><span class="chev">⌄</span></a>
+      <a class="nav-item" href="#"><span class="icon">▣</span><span>待办事项</span><span class="chev">⌄</span></a>
+      <a class="nav-item" href="#"><span class="icon">▤</span><span>合同管理</span><span class="chev">⌄</span></a>
+      <a class="nav-item active" href="#"><span class="icon">✂</span><span>视频剪辑</span><span class="chev">⌃</span></a>
+      <a class="nav-child" href="#">成片列表</a><a class="nav-child active" href="#">剪辑列表</a>
+      <div class="nav-gap"></div>
+      <a class="nav-item" href="#"><span class="icon">♟</span><span>医生管理</span><span class="chev">⌃</span></a>
+      <a class="nav-child" href="#">医生列表</a><a class="nav-child" href="#">报名医生</a><a class="nav-child" href="#">我的医生</a><a class="nav-child" href="#">项目管理</a>
+      <a class="nav-item" href="#"><span class="icon">☷</span><span>脚本管理</span><span class="chev">⌄</span></a>
+      <a class="nav-item" href="#"><span class="icon">♧</span><span>权限管理</span><span class="chev">⌃</span></a>
+      <a class="nav-child" href="#">菜单管理</a><a class="nav-child" href="#">角色列表</a>
+    </aside>
+    <section class="main-shell">
+      <header class="topbar"><div class="breadcrumb"><button class="menu" type="button" aria-label="菜单">≡</button><span>首页</span><span class="slash">/</span><span>视频剪辑</span><span class="slash">/</span><span>剪辑列表</span><span class="slash">/</span><span class="muted">视频详情</span></div><div class="account"><span>超级管理员</span><span>15204619721</span><span class="avatar">●</span><span>⌄</span></div></header>
+      <main class="layout">
+        <aside class="info-rail" aria-label="视频详情信息">
+          <section class="info-card"><h2>【状态】</h2><div class="state-row"><span class="tab selected">原片审核</span><span class="tab">待审核</span><span class="cancel">取消任务</span></div><p class="subtle">您有原片需要申请，请您尽快审核。</p><div class="pending">待办人：李晨</div></section>
+          <section class="info-card"><h2>【医生资料】</h2><dl class="kv"><dt>用户ID：</dt><dd>1751947</dd><dt>医生姓名：</dt><dd>杨腾飞</dd><dt>联系电话：</dt><dd>18036626632</dd><dt>注册客户端：</dt><dd>APP</dd><dt>注册时间：</dt><dd>2026-08-10 10:27:10</dd><dt>医生类型：</dt><dd>-</dd><dt>职称：</dt><dd>副主任医师</dd><dt>医院：</dt><dd>连云港市第三人民医院</dd><dt>科室：</dt><dd>麻醉科</dd></dl></section>
+          <section class="info-card"><h2>【剪辑信息】</h2><dl class="kv"><dt>原片名称：</dt><dd><span class="clip-title">麻醉苏醒那些事儿 <span class="pencil">♢</span></span></dd><dt>创建时间：</dt><dd>2026-08-24 13:56:33</dd><dt>备注：</dt><dd>-</dd><dt>素材标签：</dt><dd>苏医有声—江苏多学科医学科普音频公益计划 <span class="pencil">♢</span></dd></dl></section>
+          <section class="info-card"><h2>【流程记录】</h2><div class="timeline"><div class="timeline-item"><div class="timeline-name">原片审核</div><div class="timeline-meta"><span>待审核</span><span>2026-08-24 13:56:36</span></div><div class="timeline-meta"><span></span><span>处理人员：-</span></div></div></div></section>
+        </aside>
+        <section class="content" aria-label="原片审核工作区">
+          <div class="source-heading"><span class="down">⌄</span><span>【原片素材】</span><button class="fold" id="foldButton" type="button">折叠</button></div>
+          <div class="more-sources" id="moreSources">当前项目共 3 个原片。请在原片列表中勾选需要直接提交成片的一条原片。</div>
+          <div class="source-grid">
+            <section><h2 class="source-label">【原片】</h2><span class="video-time">2026-08-24 13:56:33</span><label class="source-check" data-change-id="P02-C02"><input class="source-select" type="checkbox" value="麻醉苏醒那些事儿+70253+6632"><span>选择此原片直接提交成片</span></label><div class="video-box"><div class="wave" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div><span class="play">▶</span></div><div class="source-name"><span>原片名称： 麻醉苏醒那些事儿+70253+6632</span><span class="file-icon">▧</span></div><div class="pills"><button class="pill muted" type="button">关联</button><button class="pill" type="button">置灰</button><button class="pill" type="button">迅雷下载</button><button class="pill" type="button">普通下载</button><button class="pill" type="button">复制下载链接</button><button class="pill" type="button">重新上传</button></div></section>
+            <section><h2 class="ocr-title">【OCR】<span class="save-ocr">保存OCR</span><span class="copy">复制</span></h2><div class="ocr-panel"><div class="ocr-placeholder">请输入内容</div><button class="ocr-button" type="button">开始识别</button></div></section>
+          </div>
+          <div class="source-grid additional-source" id="additionalSourceOne"><section><h2 class="source-label">【原片】</h2><span class="video-time">2026-08-24 14:02:18</span><label class="source-check"><input class="source-select" type="checkbox" value="肠癌手术治疗方式讲解+70253+6633"><span>选择此原片直接提交成片</span></label><div class="video-box"><div class="wave" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div><span class="play">▶</span></div><div class="source-name"><span>原片名称： 肠癌手术治疗方式讲解+70253+6633</span><span class="file-icon">▧</span></div></section></div>
+          <div class="source-grid additional-source" id="additionalSourceTwo"><section><h2 class="source-label">【原片】</h2><span class="video-time">2026-08-24 14:05:44</span><label class="source-check"><input class="source-select" type="checkbox" value="术后护理要点+70253+6634"><span>选择此原片直接提交成片</span></label><div class="video-box"><div class="wave" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div><span class="play">▶</span></div><div class="source-name"><span>原片名称： 术后护理要点+70253+6634</span><span class="file-icon">▧</span></div></section></div>
+          <div class="review-actions" data-change-id="P02-C01"><button class="action" id="passButton" type="button">通过</button><button class="action" id="supplementButton" type="button">补充素材</button><button class="action ai" id="aiButton" type="button">AI剪辑</button><button class="action direct" id="directDeliveryButton" type="button">直接成片交付</button></div>
+          <div class="delivery-notice" id="deliveryNotice" data-state-id="P02-S03">已提交成片：所选原片将直接交付，已跳过文案与 AI 剪辑环节。</div>
+        </section>
+      </main>
+    </section>
+  </div>
+  <div class="toast" id="toast" role="status" aria-live="polite"></div>
+  <div class="modal-backdrop" id="deliveryModal" data-state-id="P02-S02" hidden>
+    <section class="modal" aria-modal="true" role="dialog" aria-labelledby="modalTitle">
+      <header class="modal-head"><h2 id="modalTitle">请选择提交的原片</h2><button class="modal-close" id="closeModal" type="button" aria-label="关闭">×</button></header>
+      <div class="modal-body selection-view"><p class="modal-intro">该项目仅需原片审核。请选择一条原片后，系统将直接交付成片，不进入文案与 AI 剪辑环节。</p>
+        <label class="source-option"><input type="radio" name="source" value="麻醉苏醒那些事儿+70253+6632"><span class="source-thumb"></span><span><strong>麻醉苏醒那些事儿+70253+6632</strong><small>时长 01:12 · 当前原片</small></span></label>
+        <label class="source-option"><input type="radio" name="source" value="肠癌手术治疗方式讲解+70253+6633"><span class="source-thumb"></span><span><strong>肠癌手术治疗方式讲解+70253+6633</strong><small>时长 01:46 · 待审核原片</small></span></label>
+        <label class="source-option"><input type="radio" name="source" value="术后护理要点+70253+6634"><span class="source-thumb"></span><span><strong>术后护理要点+70253+6634</strong><small>时长 00:58 · 待审核原片</small></span></label>
+        <div class="route-note" data-change-id="P02-C04">特殊流转：本项目没有文案和剪辑人员参与；如原片审核驳回，将直接退回编辑组长或剪辑组长处理。</div><p class="error" id="selectionError"></p>
+      </div>
+      <div class="success-box" data-change-id="P02-C03"><div class="success-icon">✓</div><h3>已提交成片交付</h3><p id="successText">所选原片已直接交付成片。</p></div>
+      <footer class="modal-foot"><button id="cancelModal" type="button">取消</button><button class="confirm" id="confirmDelivery" type="button" data-change-id="P02-C02">确认交付</button></footer>
+    </section>
+  </div>
+  <script>
+    (() => {
+      const pageId = 'P02'; const defaultScenario = 'P02-S01';
+      const root = document.querySelector('[data-page-root]'); const modal = document.querySelector('#deliveryModal'); const modalCard = modal.querySelector('.modal');
+      const notice = document.querySelector('#deliveryNotice'); const error = document.querySelector('#selectionError'); const toast = document.querySelector('#toast'); const successText = document.querySelector('#successText');
+      const params = new URLSearchParams(location.search); let scenarioId = params.get('prototypeScenario') || defaultScenario; let timer = 0;
+      const send = (message) => { if (window.parent !== window) window.parent.postMessage(message, '*'); };
+      const notify = (message) => { toast.textContent = message; toast.classList.add('show'); clearTimeout(timer); timer = setTimeout(() => toast.classList.remove('show'), 1800); };
+      const clearSelection = () => { document.querySelectorAll('input[name="source"], .source-select').forEach((input) => { input.checked = false; input.closest('.source-option')?.classList.remove('selected'); }); error.textContent = ''; };
+      const showModal = () => { modal.hidden = false; modalCard.classList.remove('is-success'); };
+      const hideModal = () => { modal.hidden = true; clearSelection(); };
+      const applyScenario = (next, report = true) => { scenarioId = next || defaultScenario; root.dataset.stateId = scenarioId; notice.classList.remove('show'); hideModal(); if (scenarioId === 'P02-S02') { document.querySelector('#moreSources').classList.add('show'); document.querySelectorAll('.additional-source').forEach((item) => item.classList.add('show')); document.querySelector('#foldButton').textContent = '收起'; } if (scenarioId === 'P02-S03') { notice.classList.add('show'); } if (report) send({type:'prototype:state-changed',pageId,scenarioId}); };
+      const reset = () => { applyScenario(defaultScenario, false); document.querySelector('#directDeliveryButton').disabled = false; document.querySelector('#directDeliveryButton').textContent = '直接成片交付'; };
+      document.querySelector('#directDeliveryButton').addEventListener('click', () => { const selected = document.querySelector('.source-select:checked'); if (!selected) { notify('请选择提交的原片'); return; } notice.textContent = `已提交成片：${selected.value} 已直接交付，已跳过文案与 AI 剪辑环节。`; notice.classList.add('show'); root.dataset.stateId = 'P02-S03'; scenarioId = 'P02-S03'; document.querySelector('#directDeliveryButton').disabled = true; document.querySelector('#directDeliveryButton').textContent = '已提交成片'; send({type:'prototype:state-changed',pageId,scenarioId}); });
+      document.querySelector('#closeModal').addEventListener('click', hideModal); document.querySelector('#cancelModal').addEventListener('click', hideModal);
+      document.querySelector('#foldButton').addEventListener('click', () => { const list = document.querySelector('#moreSources'); list.classList.toggle('show'); document.querySelectorAll('.additional-source').forEach((item) => item.classList.toggle('show', list.classList.contains('show'))); document.querySelector('#foldButton').textContent = list.classList.contains('show') ? '收起' : '折叠'; });
+      document.querySelectorAll('.source-select').forEach((input) => input.addEventListener('change', () => { if (input.checked) document.querySelectorAll('.source-select').forEach((other) => { if (other !== input) other.checked = false; }); }));
+      document.querySelectorAll('input[name="source"]').forEach((input) => input.addEventListener('change', () => { document.querySelectorAll('.source-option').forEach((item) => item.classList.toggle('selected', item.querySelector('input').checked)); error.textContent = ''; }));
+      document.querySelector('#confirmDelivery').addEventListener('click', () => { const selected = document.querySelector('input[name="source"]:checked'); if (!selected) { error.textContent = '请先选择一个原片后再提交成片。'; return; } successText.textContent = `“${selected.value}”已直接交付成片，已跳过文案与 AI 剪辑。`; modalCard.classList.add('is-success'); notice.textContent = `已提交成片：${selected.value} 已直接交付，已跳过文案与 AI 剪辑环节。`; notice.classList.add('show'); root.dataset.stateId = 'P02-S03'; scenarioId = 'P02-S03'; document.querySelector('#directDeliveryButton').disabled = true; document.querySelector('#directDeliveryButton').textContent = '已提交成片'; send({type:'prototype:state-changed',pageId,scenarioId}); });
+      document.querySelector('#passButton').addEventListener('click', () => notify('原片审核已通过')); document.querySelector('#supplementButton').addEventListener('click', () => notify('已进入补充素材流程')); document.querySelector('#aiButton').addEventListener('click', () => notify('已进入 AI 剪辑流程'));
+      window.addEventListener('message', (event) => { const message = event.data || {}; if (message.type === 'prototype:scenario') applyScenario(message.scenarioId || defaultScenario); if (message.type === 'prototype:reset') reset(); if (message.type === 'prototype:set-mode') root.dataset.mode = message.mode || 'prototype'; if (message.type === 'prototype:highlight') { const target = document.querySelector(`[data-change-id="${message.changeId || ''}"]`); if (!target) { send({type:'prototype:highlight-result',pageId,changeId:message.changeId,success:false,message:'未找到对应改动区域'}); return; } target.classList.add('highlight'); target.scrollIntoView({block:'center',behavior:'smooth'}); setTimeout(() => target.classList.remove('highlight'), 1300); send({type:'prototype:highlight-result',pageId,changeId:message.changeId,success:true}); } });
+      applyScenario(scenarioId, false); send({type:'prototype:page-ready',pageId,scenarioId});
+    })();
+  </script>
+</body>
+</html>

@@ -1,0 +1,26 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 675" role="img" aria-labelledby="title desc">
+  <title id="title">小黑将原片直接送入成片交付</title>
+  <desc id="desc">纯白手绘风格中，小黑推着原片卡片穿过一条捷径，直接抵达成片交付箱。</desc>
+  <rect width="1200" height="675" fill="#fff"/>
+  <g fill="none" stroke="#161616" stroke-width="5" stroke-linecap="round" stroke-linejoin="round">
+    <rect x="194" y="193" width="260" height="166" rx="7"/>
+    <path d="M219 224h210M219 254h150M219 284h178" opacity=".5"/>
+    <path d="M470 276c95-118 211-134 339-44" stroke="#e1783f"/>
+    <path d="m793 218 21 12-5-23" stroke="#e1783f"/>
+    <path d="M851 183h151v211H851z"/>
+    <path d="M873 216h107M873 247h85M873 278h103" opacity=".52"/>
+    <path d="m880 335 31 24 61-70" stroke="#2f8e67" stroke-width="7"/>
+    <path d="M487 415c13-30 43-46 68-35 22 9 29 34 18 58-14 32-51 47-77 34-20-11-20-37-9-57z" fill="#111"/>
+    <path d="M500 464l-7 60M552 467l12 57M494 523l-19 12M565 523l19 13"/>
+    <path d="M487 443c-31 2-49 9-69 26M566 439c19-15 36-23 55-24"/>
+    <path d="M509 430h3M545 430h3" stroke="#fff" stroke-width="8"/>
+    <path d="M635 448h65M668 420v56" stroke="#d64b47"/>
+    <path d="M739 438h62M756 416v44M783 416v44" opacity=".45"/>
+  </g>
+  <g font-family="Microsoft YaHei, PingFang SC, sans-serif" font-size="29" font-weight="600">
+    <text x="220" y="407" fill="#2d75b2">原片</text>
+    <text x="654" y="192" fill="#e1783f">直接交付</text>
+    <text x="711" y="515" fill="#d64b47">跳过</text>
+    <text x="869" y="426" fill="#2f8e67">成片</text>
+  </g>
+</svg>
